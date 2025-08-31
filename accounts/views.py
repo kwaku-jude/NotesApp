@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.authtoken.views import ObtainAuthToken
-from .serializers import UserSerializer
+from .serializers import UserSerializer, LoginSerializer
 
 User = get_user_model()
 
@@ -27,6 +27,18 @@ class CustomAuthToken(ObtainAuthToken):
             "token": token.key,
             "user_id": token.user_id,
             "username": token.user.username
+        })
+
+class LoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({
+            "token": serializer.validated_data["token"],
+            "user_id": serializer.validated_data["user"].id,
+            "username": serializer.validated_data["user"].username
         })
 
 # Logout (delete token)
