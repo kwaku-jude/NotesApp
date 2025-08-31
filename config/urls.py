@@ -23,6 +23,8 @@ from accounts.views import LoginView, LogoutView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/accounts/", include("accounts.urls")),
+    path("api/", include("notes.urls")),
+
 
     # Auth endpoints
     path('api/accounts/login/', LoginView.as_view(), name='login'),

@@ -84,3 +84,14 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+from rest_framework import generics, permissions
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class UserDeleteView(generics.DestroyAPIView):
+    queryset = User.objects.all()
+    permission_classes = [permissions.IsAdminUser]
+    lookup_field = 'id'
