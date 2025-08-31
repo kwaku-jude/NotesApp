@@ -9,6 +9,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.authtoken.views import ObtainAuthToken
 from .serializers import UserSerializer, LoginSerializer
+from rest_framework import generics, permissions
+from .serializers import UserProfileSerializer
 
 User = get_user_model()
 
@@ -52,6 +54,17 @@ class LogoutView(APIView):
 # Current user profile
 class ProfileView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+
+
+
+
+class UserProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
