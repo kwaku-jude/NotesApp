@@ -2,12 +2,15 @@ from django.shortcuts import render
 
 
 # Create your views here.
-from rest_framework import generics, permissions
-from django.contrib.auth import get_user_model
+from rest_framework import generics, permissions, status
+from django.contrib.auth import get_user_model, authenticate
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework_simplejwt import tokens
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from .serializers import UserSerializer, LoginSerializer
 from rest_framework import generics, permissions
 from .serializers import UserProfileSerializer
@@ -34,22 +37,34 @@ class CustomAuthToken(ObtainAuthToken):
 class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
-    def post(self, request, *args, **kwargs):
-        serializer = LoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return Response({
-            "token": serializer.validated_data["token"],
-            "user_id": serializer.validated_data["user"].id,
-            "username": serializer.validated_data["user"].username
-        })
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user_id": user.id,
+                "username": user.username
+            })
+        else:
+            return Response({"detail": "Invalid credentials"}, status=401)
 
 # Logout (delete token)
 class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        request.user.auth_token.delete()
-        return Response({"detail": "Logged out successfully."})
+        try:
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response({"detail": "Logged out successfully."}, status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # Current user profile
 class ProfileView(generics.RetrieveAPIView):
