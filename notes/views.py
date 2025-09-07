@@ -2,7 +2,9 @@ from django.db import models
 from django.shortcuts import render
 
 # Create your views here.
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, viewsets, status
+from rest_framework.response import Response
+
 from .models import Note
 from .serializers import NoteSerializer
 from django.db.models import Q
@@ -51,3 +53,12 @@ class NoteRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Note.objects.all()
     serializer_class = NoteSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        title = instance.title  # keep the note title for the message
+        self.perform_destroy(instance)
+        return Response(
+            {"message": f"Note '{title}' has been deleted successfully."},
+            status=status.HTTP_200_OK
+        )
