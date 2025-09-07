@@ -16,8 +16,8 @@ class Note(TimeStampedModel):
     course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)
     lecturer = models.ForeignKey(Lecturer, on_delete=models.SET_NULL, null=True, blank=True)
     tags = models.CharField(max_length=255, blank=True)  # comma-separated tags/topics
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     is_public = models.BooleanField(default=False)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
 
 
     def __str__(self):
